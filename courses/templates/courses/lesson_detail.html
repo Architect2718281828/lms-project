@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+    <h1>{{ lesson.title }}</h1>
+    <p>{{ lesson.description }}</p>
+
+    <h3>Материалы к уроку:</h3>
+
+    {% for material in lesson.materials.all %}
+        <div style="margin-bottom: 2rem; padding: 1rem; border: 1px solid #eee; border-radius: 8px;">
+            <h4>{{ material.title }}</h4>
+
+            {% if material.material_type == 'video' %}
+                {% if material.file %}
+                    <video width="100%" controls>
+                        <source src="{{ material.file.url }}" type="video/mp4">
+                        Ваш браузер не поддерживает видео.
+                    </video>
+                {% else %}
+                    <p style="color: red;">Видеофайл не найден.</p>
+                {% endif %}
+
+            {% elif material.material_type == 'pdf' %}
+                {% if material.file %}
+                    <div class="pdf-container" style="text-align: center; margin-top: 20px;">
+                        <a href="{{ material.file.url }}" target="_blank" class="btn">Открыть PDF в полном окне</a>
+                        <object data="{{ material.file.url }}" type="application/pdf" width="100%" height="800px">
+                            <p>Ваш браузер не поддерживает встроенный просмотр PDF.
+                               <a href="{{ material.file.url }}">Скачайте файл, чтобы посмотреть его.</a>
+                            </p>
+                        </object>
+                    </div>
+                {% else %}
+                    <p style="color: red;">Файл PDF не найден.</p>
+                {% endif %}
+
+            {% elif material.material_type == 'game' %}
+                <!-- Блок для игр -->
+                {% if material.url %}
+                    <div class="game-container" style="text-align: center; margin-top: 20px;">
+                        <iframe src="{{ material.url }}" width="100%" height="600px" style="border: none;"></iframe>
+                        <br>
+                        <a href="{{ material.url }}" target="_blank" class="btn">Открыть игру на весь экран</a>
+                    </div>
+                {% else %}
+                    <p style="color: red;">Ссылка на игру не указана.</p>
+                {% endif %}
+
+            {% elif material.material_type == 'link' %}
+                <!-- Блок для ссылок -->
+                {% if material.url %}
+                    <a href="{{ material.url }}" target="_blank" class="btn">Перейти по ссылке</a>
+                {% else %}
+                    <p style="color: red;">Ссылка не указана.</p>
+                {% endif %}
+            {% endif %}
+        </div>
+    {% empty %}
+        <p>Материалов к уроку пока нет.</p>
+    {% endfor %}
+{% endblock %}

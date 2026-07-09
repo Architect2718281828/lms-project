@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+    <h1>Мои уроки</h1>
+    <div class="lessons-container">
+        {% for lesson in lessons %}
+            <div class="lesson-card" style="margin-bottom: 1rem; padding: 1rem; border: 1px solid #ccc;">
+                <h3>Урок {{ lesson.order }}: {{ lesson.title }}</h3>
+                <p>Курс: {{ lesson.level.name }}</p>
+                <a href="{% url 'lesson_detail' lesson.pk %}">Открыть урок</a>
+            </div>
+        {% empty %}
+            <p>Уроков пока нет.</p>
+        {% endfor %}
+    </div>
+{% endblock %}

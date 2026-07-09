@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Hangman: English Learning</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; background-color: #f4f4f9; padding: 20px; }
+        .game-container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        #word-display { font-size: 24px; letter-spacing: 10px; margin: 20px 0; font-weight: bold; }
+        .keyboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(40px, 1fr)); gap: 5px; }
+        button { padding: 10px; cursor: pointer; border: 1px solid #ccc; background: white; border-radius: 4px; }
+        button:disabled { background: #eee; cursor: not-allowed; }
+        #hangman-drawing { height: 200px; width: 200px; }
+        .message { margin-top: 20px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="game-container">
+    <h1>Виселица (English)</h1>
+    <p>Отгадай английское слово:</p>
+
+    <svg id="hangman-drawing">
+        <!-- Виселица -->
+        <line x1="20" y1="190" x2="180" y2="190" stroke="black" stroke-width="4"/>
+        <line x1="50" y1="190" x2="50" y2="20" stroke="black" stroke-width="4"/>
+        <line x1="50" y1="20" x2="130" y2="20" stroke="black" stroke-width="4"/>
+        <line x1="130" y1="20" x2="130" y2="50" stroke="black" stroke-width="2"/>
+        <!-- Части тела (появляются по ошибкам) -->
+        <circle id="head" cx="130" cy="70" r="20" stroke="black" stroke-width="2" fill="none" visibility="hidden"/>
+        <line id="body" x1="130" y1="90" x2="130" y2="140" stroke="black" stroke-width="2" visibility="hidden"/>
+        <line id="arm-l" x1="130" y1="100" x2="100" y2="130" stroke="black" stroke-width="2" visibility="hidden"/>
+        <line id="arm-r" x1="130" y1="100" x2="160" y2="130" stroke="black" stroke-width="2" visibility="hidden"/>
+        <line id="leg-l" x1="130" y1="140" x2="100" y2="170" stroke="black" stroke-width="2" visibility="hidden"/>
+        <line id="leg-r" x1="130" y1="140" x2="160" y2="170" stroke="black" stroke-width="2" visibility="hidden"/>
+    </svg>
+
+    <div id="word-display">_ _ _ _ _</div>
+    <div class="keyboard" id="keyboard"></div>
+    <div class="message" id="message"></div>
+    <button id="reset-btn" style="margin-top: 20px; display: none;" onclick="initGame()">Новая игра</button>
+</div>
+
+<script>
+    const words = ["APPLE", "HOUSE", "SCHOOL", "FRIEND", "TRAVEL", "DREAM", "STORY", "BRIGHT", "FUTURE", "LEARN"];
+    let chosenWord = "";
+    let guessedLetters = [];
+    let mistakes = 0;
+    const maxMistakes = 6;
+    const parts = ["head", "body", "arm-l", "arm-r", "leg-l", "leg-r"];
+
+    function initGame() {
+        chosenWord = words[Math.floor(Math.random() * words.length)];
+        guessedLetters = [];
+        mistakes = 0;
+        document.getElementById("message").innerText = "";
+        document.getElementById("reset-btn").style.display = "none";
+
+        // Скрываем все части виселицы
+        parts.forEach(part => document.getElementById(part).style.visibility = "hidden");
+
+        const keyboard = document.getElementById("keyboard");
+        keyboard.innerHTML = "";
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").forEach(letter => {
+            const btn = document.createElement("button");
+            btn.innerText = letter;
+            btn.onclick = () => handleGuess(letter);
+            keyboard.appendChild(btn);
+        });
+        updateWordDisplay();
+    }
+
+    function updateWordDisplay() {
+        const display = chosenWord.split("").map(l => guessedLetters.includes(l) ? l : "_").join(" ");
+        document.getElementById("word-display").innerText = display;
+        if (!display.includes("_")) {
+            document.getElementById("message").innerText = "Ты победил! Это было слово: " + chosenWord;
+            endGame();
+        }
+    }
+
+    function handleGuess(letter) {
+        guessedLetters.push(letter);
+        event.target.disabled = true;
+
+        if (chosenWord.includes(letter)) {
+            updateWordDisplay();
+        } else {
+            mistakes++;
+            document.getElementById(parts[mistakes - 1]).style.visibility = "visible";
+            if (mistakes >= maxMistakes) {
+                document.getElementById("message").innerText = "Game Over! Слово было: " + chosenWord;
+                endGame();
+            }
+        }
+    }
+
+    function endGame() {
+        document.querySelectorAll(".keyboard button").forEach(btn => btn.disabled = true);
+        document.getElementById("reset-btn").style.display = "inline-block";
+    }
+
+    initGame();
+</script>
+
+</body>
+</html>
