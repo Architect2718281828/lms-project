@@ -2,6 +2,9 @@
 {% load static %}
 
 {% block content %}
+<!-- Подключаем стили Plyr -->
+<link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
+
 <style>
     .lesson-page {
         max-width: 1000px;
@@ -61,30 +64,17 @@
         background-color: #2563eb;
     }
 
-    /* УЛУЧШЕННЫЙ СТИЛЬ ДЛЯ ВИДЕОПЛЕЕРА */
+    /* ИСПРАВЛЕННЫЙ СТИЛЬ ДЛЯ ВИДЕОПЛЕЕРА (Убрали конфликты с Plyr) */
     .video-cinema-wrapper {
-        position: relative;
         width: 100%;
         max-width: 850px;
         margin: 20px auto 0 auto;
-        background: #0f172a; /* Эффект кинотеатра */
         border-radius: 14px;
         overflow: hidden;
         box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
-        aspect-ratio: 16 / 9; /* Строгие пропорции плееру */
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    .video-cinema-wrapper video,
-    .video-cinema-wrapper iframe {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        border: none;
-        display: block;
+        background: #0f172a;
+        /* Настраиваем главный цвет кнопок плеера под твой дизайн */
+        --plyr-color-main: #3b82f6;
     }
 </style>
 
@@ -152,20 +142,46 @@
                 <!-- СТИЛЬНЫЙ КИНОТЕАТРАЛЬНЫЙ ПЛЕЕР -->
                 <div class="video-cinema-wrapper">
                     {% if material.file %}
-                        <!-- Если загружен файл -->
-                        <video controls controlsList="nodownload">
+                        <!-- Plyr сам определит пропорции видео -->
+                        <video class="js-plyr" playsinline controls controlsList="nodownload">
                             <source src="{{ material.file.url }}" type="video/mp4">
                             Ваш браузер не поддерживает встроенные видео.
                         </video>
                     {% elif material.url %}
-                        <!-- Если ссылка на YouTube/ВК/Рутуб -->
-                        <iframe src="{{ material.url }}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                        <div class="js-plyr" data-plyr-provider="youtube" data-plyr-embed-id="{{ material.url }}"></div>
                     {% else %}
-                        <div style="color: #94a3b8; font-weight: 500;">Файл или ссылка на видео отсутствуют</div>
+                        <div style="padding: 40px; color: #94a3b8; font-weight: 500; text-align: center;">Файл или ссылка на видео отсутствуют</div>
                     {% endif %}
                 </div>
             {% endif %}
         </div>
     {% endfor %}
 </div>
+
+<!-- Подключаем скрипт Plyr и инициализируем его -->
+<script src="https://cdn.plyr.io/3.7.8/plyr.polyfilled.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Находим все видео с классом js-plyr и применяем к ним плеер
+        const players = Array.from(document.querySelectorAll('.js-plyr')).map(p => new Plyr(p, {
+            controls: [
+                'play-large',   // Большая кнопка play по центру
+                'play',         // Кнопка play/pause снизу
+                'progress',     // Полоса прокрутки
+                'current-time', // Текущее время
+                'duration',     // Полная длительность
+                'mute',         // Кнопка звука
+                'volume',       // Ползунок громкости
+                'settings',     // Шестеренка настроек
+                'pip',          // Режим "картинка в картинке"
+                'fullscreen'    // Полный экран
+            ],
+            settings: ['speed'], // Оставляем в настройках только скорость
+            speed: {
+                selected: 1,
+                options: [0.5, 0.75, 1, 1.25, 1.5, 2] // Настройки скорости
+            }
+        }));
+    });
+</script>
 {% endblock %}
