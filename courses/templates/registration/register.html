@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Регистрация на курс</title>
+    <style>
+        /* Базовые настройки страницы */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6; /* Мягкий светло-серый фон */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        /* Белая карточка по центру */
+        .register-container {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px; /* Ширина формы */
+            box-sizing: border-box;
+        }
+
+        .register-container h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 25px;
+            margin-top: 0;
+        }
+
+        /* Группировка: label + input */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #444;
+            font-size: 14px;
+        }
+
+        /* Стили для полей ввода и выпадающего списка */
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccd0d5;
+            border-radius: 6px;
+            font-size: 15px;
+            box-sizing: border-box;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        /* Эффект при клике на поле */
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+            outline: none;
+        }
+
+        /* Кнопка отправки */
+        .btn-submit {
+            width: 100%;
+            padding: 14px;
+            background-color: #007bff; /* Синий цвет */
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .btn-submit:hover {
+            background-color: #0056b3; /* Более темный синий при наведении */
+        }
+
+        /* Ошибки (например, пароль слишком короткий) */
+        .errorlist {
+            color: #d9534f;
+            list-style-type: none;
+            padding: 0;
+            margin: 5px 0 0 0;
+            font-size: 13px;
+        }
+
+        /* Сообщение об ошибке в самом верху (если есть) */
+        .non-field-errors {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="register-container">
+    <h2>Регистрация</h2>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <!-- Вывод общих ошибок формы -->
+        {% if form.non_field_errors %}
+            <div class="non-field-errors">
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
+
+        <!-- Ручной перебор всех полей формы -->
+        {% for field in form %}
+            <div class="form-group">
+                {{ field.label_tag }} <!-- Выводит название (Имя, Email и т.д.) -->
+                {{ field }} <!-- Само поле ввода -->
+
+                <!-- Если при заполнении поля возникла ошибка, показываем её красным -->
+                {% if field.errors %}
+                    {{ field.errors }}
+                {% endif %}
+            </div>
+        {% endfor %}
+
+        <button type="submit" class="btn-submit">Отправить</button>
+    </form>
+</div>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const roleSelect = document.querySelector('select[name="role"]');
+        const levelField = document.querySelector('select[name="level"]').closest('.form-group');
+
+        function toggleLevelField() {
+            // Если выбрана роль 'staff', скрываем поле уровня
+            if (roleSelect.value === 'staff') {
+                levelField.style.display = 'none';
+            } else {
+                levelField.style.display = 'block';
+            }
+        }
+
+        // Запускаем при загрузке и при каждом изменении выбора
+        roleSelect.addEventListener('change', toggleLevelField);
+        toggleLevelField();
+    });
+</script>
+</body>
+</html>

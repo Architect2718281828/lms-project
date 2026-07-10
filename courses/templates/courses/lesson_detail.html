@@ -2,61 +2,170 @@
 {% load static %}
 
 {% block content %}
-    <h1>{{ lesson.title }}</h1>
-    <p>{{ lesson.description }}</p>
+<style>
+    .lesson-page {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 20px;
+        font-family: system-ui, -apple-system, sans-serif;
+    }
+    .lesson-header {
+        margin-bottom: 30px;
+        border-bottom: 2px solid #f1f5f9;
+        padding-bottom: 20px;
+    }
+    .lesson-title {
+        color: #0f172a;
+        font-size: 2.25rem;
+        font-weight: 800;
+        margin-bottom: 10px;
+    }
+    .lesson-desc {
+        color: #475569;
+        font-size: 1.1rem;
+        line-height: 1.6;
+    }
+    .section-title {
+        color: #1e293b;
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin: 40px 0 20px 0;
+    }
+    .material-card {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 24px;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+    .material-header {
+        color: #334155;
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin: 0 0 16px 0;
+    }
+    .btn-fullscreen {
+        display: inline-flex;
+        align-items: center;
+        background-color: #3b82f6;
+        color: white;
+        text-decoration: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        transition: background-color 0.2s;
+    }
+    .btn-fullscreen:hover {
+        background-color: #2563eb;
+    }
 
-    <h3>Материалы к уроку:</h3>
+    /* УЛУЧШЕННЫЙ СТИЛЬ ДЛЯ ВИДЕОПЛЕЕРА */
+    .video-cinema-wrapper {
+        position: relative;
+        width: 100%;
+        max-width: 850px;
+        margin: 20px auto 0 auto;
+        background: #0f172a; /* Эффект кинотеатра */
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+        aspect-ratio: 16 / 9; /* Строгие пропорции плееру */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .video-cinema-wrapper video,
+    .video-cinema-wrapper iframe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border: none;
+        display: block;
+    }
+</style>
+
+<div class="lesson-page">
+    <div class="lesson-header">
+        <h1 class="lesson-title">Урок {{ lesson.order }}: {{ lesson.title }}</h1>
+        <p class="lesson-desc">{{ lesson.description }}</p>
+    </div>
+
+    <!-- Подключаем библиотеку PDF.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+    <h3 class="section-title">Материалы к уроку</h3>
 
     {% for material in lesson.materials.all %}
-        <div style="margin-bottom: 2rem; padding: 1rem; border: 1px solid #eee; border-radius: 8px;">
-            <h4>{{ material.title }}</h4>
+        <div class="material-card">
+            <h4 class="material-header">{{ material.get_material_type_display }}: {{ material.title }}</h4>
 
-            {% if material.material_type == 'video' %}
-                {% if material.file %}
-                    <video width="100%" controls>
-                        <source src="{{ material.file.url }}" type="video/mp4">
-                        Ваш браузер не поддерживает видео.
-                    </video>
-                {% else %}
-                    <p style="color: red;">Видеофайл не найден.</p>
-                {% endif %}
+            {% if material.material_type == 'pdf' and material.file %}
+                <div style="text-align: center; margin-top: 15px;">
+                    <a href="{{ material.file.url }}" target="_blank" class="btn-fullscreen">Открыть PDF в полном окне</a>
 
-            {% elif material.material_type == 'pdf' %}
-                {% if material.file %}
-                    <div class="pdf-container" style="text-align: center; margin-top: 20px;">
-                        <a href="{{ material.file.url }}" target="_blank" class="btn">Открыть PDF в полном окне</a>
-                        <object data="{{ material.file.url }}" type="application/pdf" width="100%" height="800px">
-                            <p>Ваш браузер не поддерживает встроенный просмотр PDF.
-                               <a href="{{ material.file.url }}">Скачайте файл, чтобы посмотреть его.</a>
-                            </p>
-                        </object>
+                    <!-- Лента скролла для PDF -->
+                    <div id="pdf-viewer-{{ material.id }}" style="margin-top: 20px; height: 650px; overflow-y: auto; background-color: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 20px;"></div>
+                </div>
+
+                <script>
+                    const url_{{ material.id }} = "{{ material.file.url }}";
+                    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+                    pdfjsLib.getDocument(url_{{ material.id }}).promise.then(async (pdf) => {
+                        const viewer = document.getElementById('pdf-viewer-{{ material.id }}');
+
+                        for (let num = 1; num <= pdf.numPages; num++) {
+                            const page = await pdf.getPage(num);
+                            const viewport = page.getViewport({ scale: 1.5 });
+
+                            const canvas = document.createElement('canvas');
+                            const context = canvas.getContext('2d');
+                            canvas.height = viewport.height;
+                            canvas.width = viewport.width;
+
+                            canvas.style.marginBottom = "20px";
+                            canvas.style.maxWidth = "100%";
+                            canvas.style.boxShadow = "0px 4px 12px rgba(0, 0, 0, 0.1)";
+                            canvas.style.borderRadius = "4px";
+
+                            viewer.appendChild(canvas);
+
+                            await page.render({ canvasContext: context, viewport: viewport }).promise;
+                        }
+                    }).catch(err => {
+                        console.error("Ошибка при рендере PDF: ", err);
+                    });
+                </script>
+
+            {% elif material.material_type == 'game' and material.url %}
+                <div style="text-align: center; margin-top: 15px;">
+                    <div style="border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                        <iframe src="{{ material.url }}" width="100%" height="600px" style="border: none; display: block;"></iframe>
                     </div>
-                {% else %}
-                    <p style="color: red;">Файл PDF не найден.</p>
-                {% endif %}
+                </div>
 
-            {% elif material.material_type == 'game' %}
-                <!-- Блок для игр -->
-                {% if material.url %}
-                    <div class="game-container" style="text-align: center; margin-top: 20px;">
-                        <iframe src="{{ material.url }}" width="100%" height="600px" style="border: none;"></iframe>
-                        <br>
-                        <a href="{{ material.url }}" target="_blank" class="btn">Открыть игру на весь экран</a>
-                    </div>
-                {% else %}
-                    <p style="color: red;">Ссылка на игру не указана.</p>
-                {% endif %}
-
-            {% elif material.material_type == 'link' %}
-                <!-- Блок для ссылок -->
-                {% if material.url %}
-                    <a href="{{ material.url }}" target="_blank" class="btn">Перейти по ссылке</a>
-                {% else %}
-                    <p style="color: red;">Ссылка не указана.</p>
-                {% endif %}
+            {% elif material.material_type == 'video' %}
+                <!-- СТИЛЬНЫЙ КИНОТЕАТРАЛЬНЫЙ ПЛЕЕР -->
+                <div class="video-cinema-wrapper">
+                    {% if material.file %}
+                        <!-- Если загружен файл -->
+                        <video controls controlsList="nodownload">
+                            <source src="{{ material.file.url }}" type="video/mp4">
+                            Ваш браузер не поддерживает встроенные видео.
+                        </video>
+                    {% elif material.url %}
+                        <!-- Если ссылка на YouTube/ВК/Рутуб -->
+                        <iframe src="{{ material.url }}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                    {% else %}
+                        <div style="color: #94a3b8; font-weight: 500;">Файл или ссылка на видео отсутствуют</div>
+                    {% endif %}
+                </div>
             {% endif %}
         </div>
-    {% empty %}
-        <p>Материалов к уроку пока нет.</p>
     {% endfor %}
+</div>
 {% endblock %}

@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    .profile-page {
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 20px;
+        font-family: system-ui, -apple-system, sans-serif;
+    }
+    .profile-card {
+        background: white;
+        border-radius: 16px;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+    }
+    .profile-header {
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        padding: 40px 30px;
+        color: white;
+        display: flex;
+        align-items: center;
+        gap: 24px;
+    }
+    .profile-avatar {
+        width: 80px;
+        height: 80px;
+        background-color: #3b82f6;
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+    .profile-name {
+        font-size: 1.75rem;
+        margin: 0 0 6px 0;
+        font-weight: 700;
+    }
+    .profile-status-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 9999px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    .status-approved {
+        background-color: #10b981;
+        color: white;
+    }
+    .status-pending {
+        background-color: #f59e0b;
+        color: white;
+    }
+    .profile-body {
+        padding: 30px;
+    }
+    .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+    }
+    .info-item {
+        border-bottom: 1px solid #f1f5f9;
+        padding-bottom: 12px;
+    }
+    .info-label {
+        font-size: 0.875rem;
+        color: #64748b;
+        margin-bottom: 4px;
+        font-weight: 500;
+    }
+    .info-value {
+        font-size: 1.1rem;
+        color: #0f172a;
+        font-weight: 600;
+    }
+    @media (max-width: 600px) {
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+        .profile-header {
+            flex-direction: column;
+            text-align: center;
+        }
+    }
+</style>
+
+<div class="profile-page">
+    <div class="profile-card">
+        <!-- Верхняя карточка профиля -->
+        <div class="profile-header">
+            <div class="profile-avatar">
+                {{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1" }}
+            </div>
+            <div>
+                <h2 class="profile-name">{{ user.first_name }} {{ user.last_name }}</h2>
+                {% if user.is_approved %}
+                    <span class="profile-status-badge status-approved">✓ Аккаунт подтвержден</span>
+                {% else %}
+                    <span class="profile-status-badge status-pending">⏳ Ожидает подтверждения</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Данные пользователя из модели CustomUser -->
+        <div class="profile-body">
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Электронная почта (Email)</div>
+                    <div class="info-value">{{ user.email }}</div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-label">Роль в системе</div>
+                    <div class="info-value">
+                        {% if user.role == 'student' %} Студент {% else %} Сотрудник {% endif %}
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-label">Текущий уровень языка</div>
+                    <div class="info-value">
+                        {% if user.level %} {{ user.level.name }} {% else %} Не указан {% endif %}
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-label">Ваши группы</div>
+                    <div class="info-value">
+                        {% for group in user.student_groups.all %}
+                            {{ group.name }}{% if not forloop.last %}, {% endif %}
+                        {% empty %}
+                            Нет активных групп
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

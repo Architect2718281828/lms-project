@@ -2,16 +2,162 @@
 {% load static %}
 
 {% block content %}
-    <h1>Мои уроки</h1>
-    <div class="lessons-container">
+<style>
+    .lessons-page {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        font-family: system-ui, -apple-system, sans-serif;
+    }
+    .page-title {
+        color: #1e293b;
+        font-size: 2rem;
+        margin-bottom: 25px;
+        font-weight: 700;
+    }
+    /* Стили формы поиска */
+    .search-form {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 30px;
+        max-width: 600px;
+    }
+    .search-input {
+        flex: 1;
+        padding: 12px 16px;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: border-color 0.2s;
+    }
+    .search-input:focus {
+        outline: none;
+        border-color: #3b82f6;
+    }
+    .btn-search {
+        background-color: #3b82f6;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-size: 1rem;
+        cursor: pointer;
+        font-weight: 600;
+        transition: background-color 0.2s;
+    }
+    .btn-search:hover {
+        background-color: #2563eb;
+    }
+    .btn-reset {
+        display: inline-flex;
+        align-items: center;
+        color: #64748b;
+        text-decoration: none;
+        padding: 12px 16px;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        transition: all 0.2s;
+    }
+    .btn-reset:hover {
+        background-color: #f8fafc;
+        color: #1e293b;
+    }
+    /* Сетка карточек */
+    .lessons-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 24px;
+    }
+    .lesson-card {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        border: 1px solid #e2e8f0;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .lesson-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+    .lesson-number {
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        color: #3b82f6;
+        font-weight: 700;
+        margin-bottom: 8px;
+    }
+    .lesson-title {
+        color: #0f172a;
+        font-size: 1.25rem;
+        margin: 0 0 12px 0;
+        font-weight: 600;
+    }
+    .lesson-level {
+        display: inline-block;
+        background-color: #eff6ff;
+        color: #1e40af;
+        padding: 4px 10px;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-bottom: 16px;
+    }
+    .btn-open {
+        display: block;
+        text-align: center;
+        background-color: #f1f5f9;
+        color: #334155;
+        text-decoration: none;
+        padding: 10px;
+        border-radius: 6px;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+    .btn-open:hover {
+        background-color: #1e293b;
+        color: white;
+    }
+    .empty-message {
+        color: #64748b;
+        font-size: 1.1rem;
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 40px;
+    }
+</style>
+
+<div class="lessons-page">
+    <h1 class="page-title">Доступные уроки</h1>
+
+    <!-- Форма поиска -->
+    <form method="get" action="{% url 'lesson_list' %}" class="search-form">
+        <input type="text" name="q" class="search-input" placeholder="Поиск по названию урока..." value="{{ query|default:'' }}">
+        <button type="submit" class="btn-search">Найти</button>
+        {% if query %}
+            <a href="{% url 'lesson_list' %}" class="btn-reset">Сбросить</a>
+        {% endif %}
+    </form>
+
+    <!-- Сетка с уроками -->
+    <div class="lessons-grid">
         {% for lesson in lessons %}
-            <div class="lesson-card" style="margin-bottom: 1rem; padding: 1rem; border: 1px solid #ccc;">
-                <h3>Урок {{ lesson.order }}: {{ lesson.title }}</h3>
-                <p>Курс: {{ lesson.level.name }}</p>
-                <a href="{% url 'lesson_detail' lesson.pk %}">Открыть урок</a>
+            <div class="lesson-card">
+                <div>
+                    <div class="lesson-number">Урок {{ lesson.order }}</div>
+                    <h3 class="lesson-title">{{ lesson.title }}</h3>
+                    <span class="lesson-level">{{ lesson.level.name }}</span>
+                </div>
+                <a href="{% url 'lesson_detail' lesson.pk %}" class="btn-open">Открыть урок</a>
             </div>
         {% empty %}
-            <p>Уроков пока нет.</p>
+            <div class="empty-message">
+                Ничего не найдено по запросу «<strong>{{ query }}</strong>». Попробуй другое слово.
+            </div>
         {% endfor %}
     </div>
+</div>
 {% endblock %}
